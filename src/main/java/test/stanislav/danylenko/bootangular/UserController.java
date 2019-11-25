@@ -1,5 +1,6 @@
 package test.stanislav.danylenko.bootangular;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,6 +39,30 @@ public class UserController {
     @DeleteMapping("/{id}")
     void deleteUser(@PathVariable Long id) {
         userRepository.deleteById(id);
+    }
+
+    @PostMapping("/operation")
+    SpecificResponse processSpecificRequest(@RequestBody SpecificRequest specificRequest) {
+        SpecificResponse response = new SpecificResponse();
+        switch (specificRequest.getOperation()) {
+            case "procedure":
+                userRepository.insertUser(specificRequest.getParameter());
+                response.setResult("successfully added");
+                break;
+            case "function":
+                int res = userRepository.countNameLengthMore(Integer.parseInt(specificRequest.getParameter()));
+                response.setResult(res + "");
+                break;
+            case "exception":
+                try {
+                    userRepository.validateEmail(specificRequest.getParameter());
+                    response.setResult("Valid!");
+                } catch (Exception e) {
+                    response.setError(ExceptionUtils.getRootCause(e).getMessage());
+                }
+                break;
+        }
+        return response;
     }
 
 }
